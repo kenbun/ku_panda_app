@@ -3,11 +3,11 @@ import time
 from bs4 import BeautifulSoup
 import pandas as pd
 
-def login():
+def login(username, password):
   url="https://cas.ecs.kyoto-u.ac.jp/cas/login?service=https%3A%2F%2Fpanda.ecs.kyoto-u.ac.jp%2Fsakai-login-tool%2Fcontainer"
   login_data = {
-    "username" : "a0200912",
-    "password" : "1518Aka3-2Ita",
+    "username" : username,
+    "password" : password,
     "execution" : "e1s1",
     "_eventId" : "submit",
     "submit": "ログイン",
@@ -95,6 +95,3 @@ def main():
   assign = get_yet_assign(subject, session)
   display(assign)
   option(assign)
-
-if __name__=="__main__":
-  main()  
