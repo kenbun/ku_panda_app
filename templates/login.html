@@ -26,11 +26,16 @@
           </tr>
           <tr>
             <td colspan="2">
-              <input type="submit" value="ログイン">
+              <input id="login_button" type="submit" value="ログイン" onclick="load()">
             </td>
           </tr>
         </form>
       </table>
     </div>
+    <script type="text/javascript">
+      document.getElementById("login_button").onclick = function(){
+        document.getElementById("login_button").value = "通信中";
+      }
+    </script>
   </body>
 </html>
