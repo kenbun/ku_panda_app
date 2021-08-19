@@ -49,7 +49,7 @@ def get_assign_url(subject, session):
   return new_subject
 
 def get_yet_assign(subject, session):
-  assign = pd.DataFrame(columns=["subject", "title", "deadline", "status"])
+  assign = pd.DataFrame(columns=["subject", "title", "deadline", "status", "url"])
   for index, col in subject.iterrows():
     html = session.get(col.assign_url)
     bs = BeautifulSoup(html.text, 'html.parser')
@@ -61,13 +61,14 @@ def get_yet_assign(subject, session):
         title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
         until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
         if str(status[0:4]) != r"提出日時":
-          assign = assign.append({'subject':col.title, 'title':title, 'deadline':until, 'status':status}, ignore_index=True)
+          assign = assign.append({'subject':col.title, 'title':title, 'deadline':until, 'status':status, 'url':col.assign_url}, ignore_index=True)
   return assign
 
 def display(assign):
   pd.set_option('display.max_rows', 100)
   pd.set_option('display.max_colwidth', 200)
   pd.set_option('display.max_columns', 100)
+  return assign
   # try:
   #   end_assign = pd.read_csv("end_assign.csv")
   # except FileNotFoundError as e:
@@ -76,7 +77,7 @@ def display(assign):
   #   judge=True
   #   print(var==assign)
   #   assign = assign.insert(i, 'judge', not(judge))
-  print(assign.sort_values("deadline"))
+  # print(assign.sort_values("deadline"))
 
 def option(assign):
   opt = 0

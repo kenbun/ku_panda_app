@@ -4,7 +4,91 @@
     <title>PandA 課題リスト</title>
   </head>
   <body>
-    {{status}}
+    <h1 align="center">課題リスト</h1>
+    <table align="center" border="1">
+      <thead>
+        <tr>
+          <th>
+            No.
+          </th>
+          <th>
+            科目
+          </th>
+          <th>
+            タイトル
+          </th>
+          <th>
+            状態
+          </th>
+          <th>
+            締切時刻
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for index, col in yet_list.iterrows()%}
+          <tr>
+            <td>
+              {{index+1}}
+            </td>
+            <td>
+              <a href="{{col.url}}">{{col.subject}}</a>
+            </td>
+            <td>
+              {{col.title}}
+            </td>
+            <td>
+              {{col.status}}
+            </td>
+            <td>
+              {{col.deadline}}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h1 align="center">期限切れ課題リスト</h1>
+    <table align="center" border="1">
+      <thead>
+        <tr>
+          <th>
+            No.
+          </th>
+          <th>
+            科目
+          </th>
+          <th>
+            タイトル
+          </th>
+          <th>
+            状態
+          </th>
+          <th>
+            締切時刻
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for index, col in dead_list.iterrows()%}
+          <tr>
+            <td>
+              {{index+1}}
+            </td>
+            <td>
+              <a href="{{col.url}}">{{col.subject}}</a>
+            </td>
+            <td>
+              {{col.title}}
+            </td>
+            <td>
+              {{col.status}}
+            </td>
+            <td>
+              {{col.deadline}}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </body>
 </html>
-<!-- titleがloginかどうか見分ける -->

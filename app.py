@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import ku_panda as ku
+import datetime
+import pandas as pd
 from bs4 import BeautifulSoup
+import re
 
 app = Flask(__name__)
 
 @app.route('/')
-def index():
-  return 'hello, world'
-
-@app.route('/login')
 def login():
   return render_template('login.html')
 
@@ -17,19 +16,35 @@ def login():
 def assign_list():
   print(request.data)
   login, session = ku.login(request.form["username"], request.form["password"])
-  status = login_successful(login)
-  if status == 0:
-    return render_template('assign_list.html', status=status)
+  if login_successful(login) == 0:
+    subject = ku.get_subject(login)
+    subject = ku.get_assign_url(subject,session)
+    assign = ku.get_yet_assign(subject, session)
+    yet_assign, dead_assign = assign_classification(assign)
+    return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign)
   else:
-    return redirect(url_for('login'))
+    return redirect(url_for('/'))
 
 def login_successful(html):
   bs = BeautifulSoup(html.text, 'html.parser')
   title = bs.find('title').text[0:5]
-  if title = "PandA":
+  if title == "PandA":
     return 0
   else:
     return 1
+
+def assign_classification(assign):
+  yet_assign = pd.DataFrame(columns=["subject", "title", "deadline", "status", "url"])
+  dead_assign = pd.DataFrame(columns=["subject", "title", "deadline", "status", "url"])
+  now = datetime.datetime.now()
+
+  for index, var in assign.iterrows():
+    deadline = re.split('[/: ]', var.deadline)
+    if now < datetime.datetime(*[int(num) for num in deadline]):
+      yet_assign = yet_assign.append({'subject':assign.iloc[index].title, 'title':assign.iloc[index].title, 'deadline':assign.iloc[index].deadline, 'status':assign.iloc[index].status, 'url':assign.iloc[index].url}, ignore_index=True)
+    else:
+      dead_assign = dead_assign.append({'subject':assign.iloc[index].title, 'title':assign.iloc[index].title, 'deadline':assign.iloc[index].deadline, 'status':assign.iloc[index].status, 'url':assign.iloc[index].url}, ignore_index=True)
+  return yet_assign, dead_assign
 
 if __name__ == '__main__':
     app.run(debug=True)
