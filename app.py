@@ -41,9 +41,9 @@ def assign_classification(assign):
   for index, var in assign.iterrows():
     deadline = re.split('[/: ]', var.deadline)
     if now < datetime.datetime(*[int(num) for num in deadline]):
-      yet_assign = yet_assign.append({'subject':assign.iloc[index].title, 'title':assign.iloc[index].title, 'deadline':assign.iloc[index].deadline, 'status':assign.iloc[index].status, 'url':assign.iloc[index].url}, ignore_index=True)
+      yet_assign = yet_assign.append({'subject':assign.iloc[index].subject, 'title':assign.iloc[index].title, 'deadline':assign.iloc[index].deadline, 'status':assign.iloc[index].status, 'url':assign.iloc[index].url}, ignore_index=True)
     else:
-      dead_assign = dead_assign.append({'subject':assign.iloc[index].title, 'title':assign.iloc[index].title, 'deadline':assign.iloc[index].deadline, 'status':assign.iloc[index].status, 'url':assign.iloc[index].url}, ignore_index=True)
+      dead_assign = dead_assign.append({'subject':assign.iloc[index].subject, 'title':assign.iloc[index].title, 'deadline':assign.iloc[index].deadline, 'status':assign.iloc[index].status, 'url':assign.iloc[index].url}, ignore_index=True)
   return yet_assign, dead_assign
 
 if __name__ == '__main__':
