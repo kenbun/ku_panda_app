@@ -24,7 +24,7 @@ def login(username, password):
   response_cookie = response.cookies
   login_url = "https://cas.ecs.kyoto-u.ac.jp/cas/login?service=https%3A%2F%2Fpanda.ecs.kyoto-u.ac.jp%2Fsakai-login-tool%2Fcontainer"
   login = session.post(login_url, data=login_data, cookies=response_cookie)
-  time.sleep(2)
+  # time.sleep(2)
   return login, session
 
 def get_subject(html):
@@ -63,36 +63,3 @@ def get_yet_assign(subject, session):
         if str(status[0:4]) != r"提出日時":
           assign = assign.append({'subject':col.title, 'title':title, 'deadline':until, 'status':status, 'url':col.assign_url}, ignore_index=True)
   return assign
-
-def display(assign):
-  pd.set_option('display.max_rows', 100)
-  pd.set_option('display.max_colwidth', 200)
-  pd.set_option('display.max_columns', 100)
-  return assign
-  # try:
-  #   end_assign = pd.read_csv("end_assign.csv")
-  # except FileNotFoundError as e:
-  #   end_assign = pd.DataFrame(columns=["subject", "title", "deadline", "status"])
-  # for i, var in enumerate(assign.sort_values("deadline")):
-  #   judge=True
-  #   print(var==assign)
-  #   assign = assign.insert(i, 'judge', not(judge))
-  # print(assign.sort_values("deadline"))
-
-def option(assign):
-  opt = 0
-  while(opt == 0):
-    opt = input("option:")
-  if opt == 'q':
-    print("see you again!")
-  elif opt == 'd':
-    num = map(int,input("What assign do you delete?").split())
-    assign.filter(items = num, axis='index').to_csv("end_assign.csv")
-
-def main():
-  login_html, session = login()
-  subject = get_subject(login_html)
-  subject = get_assign_url(subject, session)
-  assign = get_yet_assign(subject, session)
-  display(assign)
-  option(assign)
