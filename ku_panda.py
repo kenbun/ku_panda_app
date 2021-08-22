@@ -43,9 +43,21 @@ def get_assign_url(subject, session):
   for index, col in subject.iterrows():
     html = session.get(col.url)
     bs = BeautifulSoup(html.text, 'html.parser')
-    assign_div = bs.find('div', class_="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-assignment-grades").parent
-    assign_url = assign_div.get('href')
-    new_subject["assign_url"].iloc[index] = assign_url
+    assign_div = bs.find('div', class_="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-assignment-grades")
+    if assign_div != None:
+      assign_url = assign_div.parent.get('href')
+      new_subject["assign_url"].iloc[index] = assign_url
+  return new_subject
+
+def get_test_url(subject, session):
+  new_subject = subject.assign(test_url = "")
+  for index, col in subject.iterrows():
+    html = session.get(col.url)
+    bs = BeautifulSoup(html.text, 'html.parser')
+    test_div = bs.find('div', class_="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-samigo")
+    if test_div != None:
+      test_url = test_div.parent.get('href')
+      new_subject["test_url"].iloc[index] = test_url
   return new_subject
 
 def get_yet_assign(subject, session):
@@ -58,8 +70,18 @@ def get_yet_assign(subject, session):
       due = table.find_all('td', headers="status")
       for t in due:
         status = t.get_text().replace('\t','').replace('\n', '')
-        title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
-        until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
         if str(status[0:4]) != r"提出日時":
+          title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
+          until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
           assign = assign.append({'subject':col.title, 'title':title, 'deadline':until, 'status':status, 'url':col.assign_url}, ignore_index=True)
   return assign
+
+def get_yet_test(subject, session):
+  test = pd.DataFrame(columns=["subject", "title", "deadline"])
+  for index, col in subject.query('test_url != ""').iterrows():
+    html = session.get(col.test_url)
+    bs = BeautifulSoup(html.text, 'html.parser')
+    table = bs.find('tbody',id="selectIndexForm:selectTabl:tbody_element")
+    if table != None:
+      test = test.append({'subject':col.title, 'title':table.find('span', class_="spanValue"), 'deadline':table.find('span', class_="currentSort")}, ignore_index=True)
+  return test

@@ -4,7 +4,9 @@ import ku_panda as ku
 import datetime
 import pandas as pd
 from bs4 import BeautifulSoup
+import numpy as np
 import re
+import time
 
 app = Flask(__name__)
 
@@ -14,13 +16,20 @@ def login():
 
 @app.route('/assign_list', methods=['POST'])
 def assign_list():
-  print(request.data)
+  t = [time.time()]
   login, session = ku.login(request.form["username"], request.form["password"])
+  t.append(time.time())
   if login_successful(login) == 0:
+    t.append(time.time())
     subject = ku.get_subject(login)
+    t.append(time.time())
     subject = ku.get_assign_url(subject,session)
+    t.append(time.time())
     assign = ku.get_yet_assign(subject, session)
+    t.append(time.time())
     yet_assign, dead_assign = assign_classification(assign)
+    t.append(time.time())
+    app.logger.debug(np.diff(np.array(t)))
     return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign)
   else:
     return redirect(url_for('/'))
