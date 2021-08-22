@@ -4,7 +4,7 @@
     <title>Login</title>
   </head>
   <body>
-    <h1> ログイン</h1>
+    <h1 align="center"> ログイン</h1>
     <div align="center">
       <table border="0">
         <form action="/assign_list" method="POST">
@@ -26,15 +26,18 @@
           </tr>
           <tr>
             <td colspan="2">
-              <input id="login_button" type="submit" value="ログイン" onclick="load()">
+              <input id="login_button" type="submit" value="ログイン" onclick="load()" align="center">
+              <p id="message">通信中です。しばらくお待ちください...</p>
             </td>
           </tr>
         </form>
       </table>
     </div>
     <script type="text/javascript">
+      document.getElementById("message").style.display = "none";
       document.getElementById("login_button").onclick = function(){
         document.getElementById("login_button").value = "通信中";
+        document.getElementById("message").style.display = "block"
       }
     </script>
   </body>

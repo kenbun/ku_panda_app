@@ -47,6 +47,43 @@
         {% endfor %}
       </tbody>
     </table>
+    <h1 align="center">テスト・クイズ リスト</h1>
+    <table align="center" border="1">
+      <thead>
+        <tr>
+          <th>
+            No.
+          </th>
+          <th>
+            科目
+          </th>
+          <th>
+            タイトル
+          </th>
+          <th>
+            締切日時
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for index, col in test_list.iterrows()%}
+          <tr>
+            <td>
+              {{index+1}}
+            </td>
+            <td>
+              <a href="{{col.url}}">{{col.subject}}</a>
+            </td>
+            <td>
+              {{col.title}}
+            </td>
+            <td>
+              {{col.deadline}}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
     <h1 align="center">期限切れ課題リスト</h1>
     <table align="center" border="1">
       <thead>

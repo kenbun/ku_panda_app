@@ -83,5 +83,5 @@ def get_yet_test(subject, session):
     bs = BeautifulSoup(html.text, 'html.parser')
     table = bs.find('tbody',id="selectIndexForm:selectTabl:tbody_element")
     if table != None:
-      test = test.append({'subject':col.title, 'title':table.find('span', class_="spanValue"), 'deadline':table.find('span', class_="currentSort")}, ignore_index=True)
+      test = test.append({'subject':col.title, 'title':table.find('span', class_="spanValue").text, 'deadline':table.find_all('td')[-1].text}, ignore_index=True)
   return test
