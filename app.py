@@ -22,7 +22,7 @@ def assign_list():
     subject = ku.get_url(subject,session)
     assign = ku.get_yet_assign(subject, session)
     yet_assign, dead_assign = assign_classification(assign)
-    return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign, test_list=ku.get_yet_test(subject, session))
+    return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign)#, test_list=ku.get_yet_test(subject, session))
   else:
     return redirect(url_for('/'))
 
