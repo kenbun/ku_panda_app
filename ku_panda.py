@@ -60,20 +60,46 @@ def get_test_url(subject, session):
       new_subject["test_url"].iloc[index] = test_url
   return new_subject
 
+def get_url(subject, session):
+  new_subject = subject.assign(assign_url = "", test_url="")
+  for index, col in subject.iterrows():
+    html = session.get(col.url)
+    bs = BeautifulSoup(html.text, 'html.parser')
+    assign_div = bs.find('div', class_="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-assignment-grades")
+    test_div = bs.find('div', class_="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-samigo")
+    if assign_div != None:
+      assign_url = assign_div.parent.get('href')
+      new_subject["assign_url"].iloc[index] = assign_url
+    if test_div != None:
+      test_url = test_div.parent.get('href')
+      new_subject["test_url"].iloc[index] = test_url
+  return new_subject
+
 def get_yet_assign(subject, session):
   assign = pd.DataFrame(columns=["subject", "title", "deadline", "status", "url"])
   for index, col in subject.iterrows():
-    html = session.get(col.assign_url)
+    html = session.get(col.assign_url+"?criteria=assignment_status&panel=Main&sakai_action=doSort")
     bs = BeautifulSoup(html.text, 'html.parser')
     table = bs.find('table',class_="table table-hover table-striped table-bordered" )
     if bool(table):
       due = table.find_all('td', headers="status")
       for t in due:
         status = t.get_text().replace('\t','').replace('\n', '')
-        if str(status[0:4]) != r"提出日時":
-          title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
-          until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
-          assign = assign.append({'subject':col.title, 'title':title, 'deadline':until, 'status':status, 'url':col.assign_url}, ignore_index=True)
+        if str(status[0:4]) == r"提出日時":
+          break
+        title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
+        until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
+        assign = assign.append({'subject':col.title, 'title':title, 'deadline':until, 'status':status, 'url':col.assign_url}, ignore_index=True)
+
+      due.reverse()
+      for t in due:
+        status = t.get_text().replace('\t','').replace('\n', '')
+        if str(status[0:4]) == r"提出日時":
+          break
+        title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
+        until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
+        assign = assign.append({'subject':col.title, 'title':title, 'deadline':until, 'status':status, 'url':col.assign_url}, ignore_index=True)
+
   return assign
 
 def get_yet_test(subject, session):

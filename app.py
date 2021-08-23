@@ -19,10 +19,10 @@ def assign_list():
   login, session = ku.login(request.form["username"], request.form["password"])
   if login_successful(login) == 0:
     subject = ku.get_subject(login)
-    subject = ku.get_assign_url(subject,session)
+    subject = ku.get_url(subject,session)
     assign = ku.get_yet_assign(subject, session)
     yet_assign, dead_assign = assign_classification(assign)
-    return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign, test_list=ku.get_yet_test(ku.get_test_url(subject, session), session))
+    return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign, test_list=ku.get_yet_test(subject, session))
   else:
     return redirect(url_for('/'))
 
