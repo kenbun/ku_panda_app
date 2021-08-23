@@ -15,19 +15,13 @@ def login():
 
 @app.route('/assign_list', methods=['POST'])
 def assign_list():
-  s=datetime.datetime.now()
   login, session = ku.login(request.form["username"], request.form["password"])
-  app.logger.info("login:{}".format(datetime.datetime.now()-s))
   if login_successful(login) == 0:
     subject = ku.get_subject(login)
-    app.logger.info("get subject:{}".format(datetime.datetime.now()-s))
     subject = ku.get_url(subject,session)
-    app.logger.info("get url:{}".format(datetime.datetime.now()-s))
     assign = ku.get_yet_assign(subject, session)
-    app.logger.info("get assign:{}".format(datetime.datetime.now()-s))
     yet_assign, dead_assign = assign_classification(assign)
-    app.logger.info("classification subject:{}".format(datetime.datetime.now()-s))
-    return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign) #, test_list=ku.get_yet_test(subject, session))
+    return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign), test_list=ku.get_yet_test(subject, session))
   else:
     return redirect(url_for('/'))
 
