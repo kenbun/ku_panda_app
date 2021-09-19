@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 
 def login(username, password):
-  url="https://cas.ecs.kyoto-u.ac.jp/cas/login?service=https%3A%2F%2Fpanda.ecs.kyoto-u.ac.jp%2Fsakai-login-tool%2Fcontainer"
+  url="https://panda.ecs.kyoto-u.ac.jp/cas/login?service=https%3A%2F%2Fpanda.ecs.kyoto-u.ac.jp%2Fsakai-login-tool%2Fcontainer"
   login_data = {
     "username" : username,
     "password" : password,
@@ -22,9 +22,7 @@ def login(username, password):
   login_data['lt'] = authenticity_token
 
   response_cookie = response.cookies
-  login_url = "https://cas.ecs.kyoto-u.ac.jp/cas/login?service=https%3A%2F%2Fpanda.ecs.kyoto-u.ac.jp%2Fsakai-login-tool%2Fcontainer"
-  login = session.post(login_url, data=login_data, cookies=response_cookie)
-  # time.sleep(2)
+  login = session.post(url, data=login_data, cookies=response_cookie)
   return login, session
 
 def get_subject(html):
