@@ -2,6 +2,17 @@ import requests
 import time
 from bs4 import BeautifulSoup
 import pandas as pd
+import logging
+import asyncio
+
+async def run(loop, session, urls):
+  sem = asyncio.Semaphore(5)
+  async def run_get(session, url):
+    async with sem:
+      return await loop.run_in_executor(None, session.get, url)
+
+  tasks = [run_get(session, url) for url in urls]
+  return await asyncio.gather(*tasks)
 
 def login(username, password):
   url="https://panda.ecs.kyoto-u.ac.jp/cas/login?service=https%3A%2F%2Fpanda.ecs.kyoto-u.ac.jp%2Fsakai-login-tool%2Fcontainer"
@@ -36,21 +47,21 @@ def get_subject(html):
       subject = subject.append({'title':title, 'url':href}, ignore_index=True)
   return subject
 
-def get_assign_url(subject, session):
+def get_assign_url(subject, session, loop):
   new_subject = subject.assign(assign_url = "")
-  for index, col in subject.iterrows():
-    html = session.get(col.url)
+  task = loop.run_until_complete(run(loop, session, subject.url))
+  for index, html in enumerate(task):
     bs = BeautifulSoup(html.text, 'html.parser')
     assign_div = bs.find('div', class_="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-assignment-grades")
     if assign_div != None:
       assign_url = assign_div.parent.get('href')
-      new_subject["assign_url"].iloc[index] = assign_url
+      new_subject["assign_url"].iloc[index] = assign_url+"?criteria=assignment_status&panel=Main&sakai_action=doSort"
   return new_subject
 
-def get_test_url(subject, session):
+def get_test_url(subject, session, loop):
   new_subject = subject.assign(test_url = "")
-  for index, col in subject.iterrows():
-    html = session.get(col.url)
+  task = loop.run_until_complete(run(loop, session, subject.url))
+  for index, html in enumerate(task):
     bs = BeautifulSoup(html.text, 'html.parser')
     test_div = bs.find('div', class_="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-samigo")
     if test_div != None:
@@ -58,25 +69,26 @@ def get_test_url(subject, session):
       new_subject["test_url"].iloc[index] = test_url
   return new_subject
 
-def get_url(subject, session):
+def get_url(subject, session, loop):
   new_subject = subject.assign(assign_url = "", test_url="")
-  for index, col in subject.iterrows():
-    html = session.get(col.url)
+  task = loop.run_until_complete(run(loop, session, subject.url))
+  for index, html in enumerate(task):
     bs = BeautifulSoup(html.text, 'html.parser')
     assign_div = bs.find('div', class_="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-assignment-grades")
     test_div = bs.find('div', class_="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-samigo")
     if assign_div != None:
       assign_url = assign_div.parent.get('href')
-      new_subject["assign_url"].iloc[index] = assign_url
+      new_subject["assign_url"].iloc[index] = assign_url+"?criteria=assignment_status&panel=Main&sakai_action=doSort"
     if test_div != None:
       test_url = test_div.parent.get('href')
       new_subject["test_url"].iloc[index] = test_url
   return new_subject
 
-def get_yet_assign(subject, session):
+def get_yet_assign(subject, session, loop):
   assign = pd.DataFrame(columns=["subject", "title", "deadline", "status", "url"])
-  for index, col in subject.iterrows():
-    html = session.get(col.assign_url+"?criteria=assignment_status&panel=Main&sakai_action=doSort")
+  task = loop.run_until_complete(run(loop, session, subject.assign_url))
+  for index, html in enumerate(task):
+    # html = session.get(col.assign_url+"?criteria=assignment_status&panel=Main&sakai_action=doSort")
     bs = BeautifulSoup(html.text, 'html.parser')
     table = bs.find('table',class_="table table-hover table-striped table-bordered" )
     if bool(table):
@@ -87,7 +99,7 @@ def get_yet_assign(subject, session):
           break
         title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
         until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
-        assign = assign.append({'subject':col.title, 'title':title, 'deadline':until, 'status':status, 'url':col.assign_url}, ignore_index=True)
+        assign = assign.append({'subject':subject.iloc[index].title, 'title':title, 'deadline':until, 'status':status, 'url':subject.iloc[index].assign_url}, ignore_index=True)
 
       due.reverse()
       for t in due:
@@ -96,16 +108,16 @@ def get_yet_assign(subject, session):
           break
         title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
         until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
-        assign = assign.append({'subject':col.title, 'title':title, 'deadline':until, 'status':status, 'url':col.assign_url}, ignore_index=True)
+        assign = assign.append({'subject':subject.iloc[index].title, 'title':title, 'deadline':until, 'status':status, 'url':subject.iloc[index].assign_url}, ignore_index=True)
 
   return assign
 
-def get_yet_test(subject, session):
+def get_yet_test(subject, session, loop):
   test = pd.DataFrame(columns=["subject", "title", "deadline"])
-  for index, col in subject.query('test_url != ""').iterrows():
-    html = session.get(col.test_url)
+  task = loop.run_until_complete(run(loop, session, subject.query('test_url != ""').test_url))
+  for index, html in enumerate(task):
     bs = BeautifulSoup(html.text, 'html.parser')
     table = bs.find('tbody',id="selectIndexForm:selectTabl:tbody_element")
     if table != None:
-      test = test.append({'subject':col.title, 'title':table.find('span', class_="spanValue").text, 'deadline':table.find_all('td')[-1].text}, ignore_index=True)
+      test = test.append({'subject':subject.query('test_url != ""').iloc[index].title, 'title':table.find('span', class_="spanValue").text, 'deadline':table.find_all('td')[-1].text}, ignore_index=True)
   return test

@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 from bs4 import BeautifulSoup
 import numpy as np
+import asyncio
 import re
 
 app = Flask(__name__)
@@ -16,12 +17,13 @@ def login():
 @app.route('/assign_list', methods=['POST'])
 def assign_list():
   login, session = ku.login(request.form["username"], request.form["password"])
+  loop = asyncio.new_event_loop()
   if login_successful(login) == 0:
     subject = ku.get_subject(login)
-    subject = ku.get_url(subject,session)
-    assign = ku.get_yet_assign(subject, session)
+    subject = ku.get_url(subject,session,loop)
+    assign = ku.get_yet_assign(subject, session, loop)
     yet_assign, dead_assign = assign_classification(assign)
-    return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign, test_list=ku.get_yet_test(subject, session))
+    return render_template('assign_list.html', yet_list=yet_assign, dead_list=dead_assign, test_list=ku.get_yet_test(subject, session, loop))
   else:
     return redirect(url_for('/'))
 
@@ -47,4 +49,4 @@ def assign_classification(assign):
   return yet_assign, dead_assign
 
 if __name__ == '__main__':
-    app.run(debug=True)
+  app.run(debug=True)
