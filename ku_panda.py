@@ -101,14 +101,14 @@ def get_yet_assign(subject, session, loop):
         until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
         assign = assign.append({'subject':subject.iloc[index].title, 'title':title, 'deadline':until, 'status':status, 'url':subject.iloc[index].assign_url}, ignore_index=True)
 
-      due.reverse()
-      for t in due:
-        status = t.get_text().replace('\t','').replace('\n', '')
-        if str(status[0:4]) == r"提出日時":
-          break
-        title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
-        until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
-        assign = assign.append({'subject':subject.iloc[index].title, 'title':title, 'deadline':until, 'status':status, 'url':subject.iloc[index].assign_url}, ignore_index=True)
+      # due.reverse() 逆ソート しなくても大丈夫かも
+      # for t in due:
+      #   status = t.get_text().replace('\t','').replace('\n', '')
+      #   if str(status[0:4]) == r"提出日時":
+      #     break
+      #   title = t.parent.find('td', headers="title").get_text().replace('\t','').replace('\n', '')
+      #   until = t.parent.find('td', headers="dueDate").get_text().replace('\t','').replace('\n', '')
+      #   assign = assign.append({'subject':subject.iloc[index].title, 'title':title, 'deadline':until, 'status':status, 'url':subject.iloc[index].assign_url}, ignore_index=True)
 
   return assign
 
