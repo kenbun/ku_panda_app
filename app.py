@@ -16,10 +16,11 @@ def login():
 
 @app.route('/assign_list', methods=['POST'])
 def assign_list():
+  semester = request.form["semester"]
   login, session = ku.login(request.form["username"], request.form["password"])
   loop = asyncio.new_event_loop()
   if login_successful(login) == 0:
-    subject = ku.get_subject(login)
+    subject = ku.get_subject(login, semester)
     subject = ku.get_url(subject,session,loop)
     assign = ku.get_yet_assign(subject, session, loop)
     yet_assign, dead_assign = assign_classification(assign)

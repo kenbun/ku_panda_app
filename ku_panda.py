@@ -36,7 +36,7 @@ def login(username, password):
   login = session.post(url, data=login_data, cookies=response_cookie)
   return login, session
 
-def get_subject(html):
+def get_subject(html, semester):
   bs = BeautifulSoup(html.text, 'html.parser')
   menu = bs.find_all('li', class_='fav-sites-entry')
   subject = pd.DataFrame(columns=['title', 'url'])
@@ -44,7 +44,8 @@ def get_subject(html):
     span=sub.find('a', title=True)
     title, href = span.get('title'), span.get('href')
     if(title[0] == '['):
-      subject = subject.append({'title':title, 'url':href}, ignore_index=True)
+      if(title[5:7] == semester):
+        subject = subject.append({'title':title, 'url':href}, ignore_index=True)
   return subject
 
 def get_assign_url(subject, session, loop):
